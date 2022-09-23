@@ -1,0 +1,10 @@
+run this code in the terminal below to check for errors. It will create a text file called valgrind-out.txt
+
+gcc valgrind.c -g -O0 -o valgrind.out
+
+valgrind --leak-check=full \
+         --show-leak-kinds=all \
+         --track-origins=yes \
+         --verbose \
+         --log-file=valgrind-4-out.txt \
+         ./valgrind.out

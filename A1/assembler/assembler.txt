@@ -1,0 +1,6 @@
+gcc assembler.c -S -O0 -o assemblerO0.s
+gcc assembler.c -S -O1 -o assemblerO1.s
+gcc assembler.c -S -O2 -o assemblerO2.s
+gcc assembler.c -S -O3 -o assemblerO3.s
+gcc assembler.c -S -Os -o assemblerOs.s
+gcc assembler.c -S -Og -o assemblerOg.s

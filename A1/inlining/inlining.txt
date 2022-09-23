@@ -1,0 +1,25 @@
+The files relevant to the question:
+
+same_file.c
+different_file.c
+inline_manually.c
+different_file_mul.c
+different_file_mul.h
+
+-----------------------------
+
+same file:
+
+gcc same_file.c -o same_file.out -O2
+./same_file.out -O2
+
+different file:
+
+gcc -c different_file.c different_file_mul.c -O2 (for faster runtime, one can invoke -flto)
+gcc different_file_mul.o different_file.o -o different_file -O2
+./different_file -O2
+
+inline manually:
+
+gcc inline_manually.c -o inline_manually.out -O2
+./inline_manually.out -O2
