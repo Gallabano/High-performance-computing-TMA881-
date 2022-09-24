@@ -6,33 +6,26 @@ void row_sums(double * sums, const double ** matrix, size_t nrs, size_t ncs)
 {
 
   for ( size_t ix = 0; ix < nrs; ++ix ) { //Loop unrolling
-    double sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0, sum8 = 0, sum9 = 0;
-    for ( size_t jx = 0; jx < ncs; jx += 10 ){
-      sum0 += matrix[ix][jx];
-      sum1 += matrix[ix][jx+1];
-      sum2 += matrix[ix][jx+2];
-      sum3 += matrix[ix][jx+3];
-      sum4 += matrix[ix][jx+4];
-      sum5 += matrix[ix][jx+5];
-      sum6 += matrix[ix][jx+6];
-      sum7 += matrix[ix][jx+7];
-      sum8 += matrix[ix][jx+8];
-      sum9 += matrix[ix][jx+9];
+    double sum = 0.;
+    for ( size_t jx = 0; jx < ncs; ++jx ){
+      sum += matrix[ix][jx];
     }
-    sums[ix] = sum0 + sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7 + sum8 + sum9;
+    sums[ix] = sum;
   } 
 }
 
 void col_sums(double * sums, const double ** matrix, size_t nrs, size_t ncs)
 {
-  for(size_t ix = 0; ix < nrs; ++ix) //Cache prefetching: Fetch data/instructions from slower memory to faster local memory
-  {
-    sums[ix] = 0;
-  }
-
-  for ( size_t ix = 0; jx < nrs; ++jx ) {
-    for ( size_t jx = 0; ix < ncs; ++ix )
-      sums[jx] += matrix[ix][jx];
+  for ( size_t ix = 0; ix < nrs; ++ix ) {
+    double sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+    for ( size_t jx = 0; jx < ncs; jx += 4 )
+    {
+      sum0 += matrix[jx][ix];
+      sum1 += matrix[jx+1][ix];
+      sum2 += matrix[jx+2][ix];
+      sum3 += matrix[jx+3][ix];
+    }
+    sums[ix] = sum0 + sum1 + sum2 + sum3;
   }
 }
 
