@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
-#include "different_file_mul.h"
+
+void different_file_mul( double * a_re, double * a_im, double * b_re, double * b_im, double * c_re, double * c_im);
 
 int main()
 {
