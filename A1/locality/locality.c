@@ -5,7 +5,7 @@
 void row_sums(double * sums, const double ** matrix, size_t nrs, size_t ncs)
 {
 
-  for ( size_t ix = 0; ix < nrs; ++ix ) { //Loop unrolling
+  for ( size_t ix = 0; ix < nrs; ++ix ) {
     double sum = 0.;
     for ( size_t jx = 0; jx < ncs; ++jx ){
       sum += matrix[ix][jx];
@@ -16,7 +16,7 @@ void row_sums(double * sums, const double ** matrix, size_t nrs, size_t ncs)
 
 void col_sums(double * sums, const double ** matrix, size_t nrs, size_t ncs)
 {
-  for ( size_t ix = 0; ix < nrs; ++ix ) {
+  for ( size_t ix = 0; ix < nrs; ++ix ) { //Loop unrolling
     double sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
     for ( size_t jx = 0; jx < ncs; jx += 4 )
     {
