@@ -57,9 +57,8 @@ int main()
     size_t rowCount = res/24; 
     size_t maximumRowsLoad = 10000; 
     size_t numOfBlocksNeeded; 
-    size_t maximumRowsInBlock = rowCount; 
 
-    if(rowCount % maximumRowsLoad) //Rows needed
+    if(rowCount % maximumRowsLoad) //Number of blocks needed. Tells whether the last contains fewer rows than the rest, and if it is it adds an additional block
     {
         numOfBlocksNeeded = rowCount/maximumRowsLoad + 1;
     }
@@ -68,6 +67,7 @@ int main()
         numOfBlocksNeeded = rowCount/maximumRowsLoad;
     }
     
+    size_t maximumRowsInBlock = rowCount;
     size_t numOfRowsInBlock[numOfBlocksNeeded], firstBlock[numOfBlocksNeeded]; //Determines number of rows each block receives
     for(size_t i = 0; i < numOfBlocksNeeded; ++i)
     {
@@ -78,7 +78,7 @@ int main()
         }
         else
         {
-            numOfRowsInBlock[i] = rowCount;
+            numOfRowsInBlock[i] = maximumRowsInBlock;
         }
         firstBlock[i] = i * maximumRowsLoad;
     }
