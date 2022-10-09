@@ -1,4 +1,4 @@
-CFLAGS = -O0 -flto -lpthread -lm
+CFLAGS = -O2 -flto -lpthread -lm
 ARGS = -t1 -l1000 1
 DEPS = computenewton.h writenewton.h #Header files
 OBJ = computenewton.o writenewton.o #Object files
@@ -10,7 +10,7 @@ all: newton
 	gcc -c -o $@ $< $(CFLAGS) 
 
 newton: $(OBJ) newton.o
-	gcc -o $@ $^ $(CFLAGS) -g
+	gcc -o $@ $^ $(CFLAGS)
 
 valgrind: newton #Don't forget to put -g if you want to debug
 	valgrind --leak-check=full \
