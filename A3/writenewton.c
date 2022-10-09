@@ -33,7 +33,7 @@ int writenewton(void *arguments)
 
     struct timespec sleep_timespec;
     sleep_timespec.tv_sec = 0;
-    sleep_timespec.tv_nsec = 1000; //Sleep 100 microseconds
+    sleep_timespec.tv_nsec = 1000; //Sleep 1 microsecond
 
     for(int i = 0; i < numb_rows; ++i)
     {
