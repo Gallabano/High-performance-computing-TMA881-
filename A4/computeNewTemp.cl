@@ -1,16 +1,17 @@
-__kernel void computeNewTemp(__global const double * prev_temp, __global double * next_temp, __private double diffusion, __private int width, __private int height)
+__kernel void computeNewTemp(__global const double *prev_temp, __global double *next_temp, __private double diffusion, __private int width, __private int height)
 {
   int i = get_global_id(0);
   int j = get_global_id(1);
 
   double map, west, east, south, north;
-  map = prev_temp[ i * width + j ];
+
+  map = prev_temp[i*width + j];
   west = ( j-1 >= 0 ? prev_temp[i*width + j-1] : 0);
   east = ( j+1 < width ? prev_temp[i*width + j+1] : 0);
   south = ( i+1 < height ? prev_temp[(i+1)*width + j] : 0);
   north = ( i-1 >= 0 ? prev_temp[(i-1)*width + j] : 0);
 
-  next_temp[ i * width + j ] = map + diffusion * ( 0.25 * ( west + east + south + north ) - map );
+  next_temp[i*width + j] = map + diffusion * ( 0.25 * ( west + east + south + north ) - map );
 }
 
 
