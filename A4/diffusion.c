@@ -80,12 +80,25 @@ int main(int argc, char* argv[])
             break;
         }
     }
-
+    /*
     double *blockEntries = (double*)malloc(sizeof(double) * sizes[0] * sizes[1]);
     double **block = (double**)malloc(sizeof(double*) * sizes[0]);
-    for (size_t j = 0; j < sizes[0]; j++) {
+    for (size_t j = 0; j < sizes[0]; j++) 
+    {
         block[j] = blockEntries + j * sizes[1];
     }
+    for (size_t i = 0; i < sizes[0]; ++i)
+    {
+      for (size_t j = 0; j < sizes[1]; ++j)
+      {
+        block[i][j] = 0;
+      }
+    }
+    */
+    //double *block2 = (double*)calloc(sizes[0] * sizes[1], sizeof(double));
+    double **block = malloc( sizes[0]*sizeof( double * ) );
+
+    for (size_t i = 0; i < sizes[0]; i++ ) block[i] = calloc( sizes[1], sizeof(double));
 
     int currentCoordinates[2];
     int miniCounter=0;
@@ -269,6 +282,8 @@ int main(int argc, char* argv[])
     printf("Local work size:i = %d, j = %d", local_size_i,local_size_j);
     const size_t local_work_sz[] = {local_size_i,local_size_j}; //Local work size
     cl_uint prevTempArg = (cl_uint)0, nextTempArg = (cl_uint)1, tempArg;
+    const cl_int width_clint = (cl_int)sizes[0];
+    const cl_int height_clint = (cl_int)sizes[1];
     for (int iter = 0; setup.iterations; ++iter)
     {
       //Setting Kernel arguments
@@ -293,14 +308,14 @@ int main(int argc, char* argv[])
         return 1;
       }
 
-      error = clSetKernelArg(kernel, (cl_uint)3, sizeof(cl_mem), &sizes[0]);
+      error = clSetKernelArg(kernel, (cl_uint)3, sizeof(cl_int), &width_clint);
       if (error != CL_SUCCESS)
       {
         fprintf(stderr, "cannot set argument for width\n");
         return 1;
       }
 
-      error = clSetKernelArg(kernel, (cl_uint)4, sizeof(cl_mem), &sizes[1]);
+      error = clSetKernelArg(kernel, (cl_uint)4, sizeof(cl_int), &height_clint);
       if (error != CL_SUCCESS)
       {
         fprintf(stderr, "cannot set argument for height\n");
@@ -308,7 +323,7 @@ int main(int argc, char* argv[])
       }
 
       //Queue to execute
-      error = clEnqueueNDRangeKernel(command_queue, kernel , 2, NULL, (const size_t*) &global_sz_szt, (const size_t*)&local_work_sz, 0, NULL, NULL);
+      error = clEnqueueNDRangeKernel(command_queue, kernel , (cl_uint)2, NULL, (const size_t*) &global_sz_szt, (const size_t*)&local_work_sz, 0, NULL, NULL);
       if (error != CL_SUCCESS)
       {
         fprintf(stderr, "cannot enqueue kernel\n");
@@ -330,7 +345,7 @@ int main(int argc, char* argv[])
     }
 
     //Free and release cl building parts
-    free(blockEntries);
+    //free(blockEntries);
     free(block);
 
     clReleaseContext(context);
