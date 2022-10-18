@@ -45,3 +45,14 @@ reduction(
   if ( lix == 0 )
     result[get_group_id(0)] = scratch[0];
 }
+
+
+__kernel void difference(__global double *temperature,__private double average, __private int width)
+{
+  int i = get_global_id(0);
+  int j = get_global_id(1);
+
+  double dummy;
+  dummy = temperature[i*width + j] - average;
+  temperature[i*width + j] = dummy >= 0 ? dummy : -1*dummy;
+}

@@ -50,88 +50,10 @@ Struct parsingArguments(char *argv[]) {
   return s;
 }
 
-const char *getErrorString(cl_int error)
-{
-switch(error){
-    // run-time and JIT compiler errors
-    case 0: return "CL_SUCCESS";
-    case -1: return "CL_DEVICE_NOT_FOUND";
-    case -2: return "CL_DEVICE_NOT_AVAILABLE";
-    case -3: return "CL_COMPILER_NOT_AVAILABLE";
-    case -4: return "CL_MEM_OBJECT_ALLOCATION_FAILURE";
-    case -5: return "CL_OUT_OF_RESOURCES";
-    case -6: return "CL_OUT_OF_HOST_MEMORY";
-    case -7: return "CL_PROFILING_INFO_NOT_AVAILABLE";
-    case -8: return "CL_MEM_COPY_OVERLAP";
-    case -9: return "CL_IMAGE_FORMAT_MISMATCH";
-    case -10: return "CL_IMAGE_FORMAT_NOT_SUPPORTED";
-    case -11: return "CL_BUILD_PROGRAM_FAILURE";
-    case -12: return "CL_MAP_FAILURE";
-    case -13: return "CL_MISALIGNED_SUB_BUFFER_OFFSET";
-    case -14: return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST";
-    case -15: return "CL_COMPILE_PROGRAM_FAILURE";
-    case -16: return "CL_LINKER_NOT_AVAILABLE";
-    case -17: return "CL_LINK_PROGRAM_FAILURE";
-    case -18: return "CL_DEVICE_PARTITION_FAILED";
-    case -19: return "CL_KERNEL_ARG_INFO_NOT_AVAILABLE";
-
-    // compile-time errors
-    case -30: return "CL_INVALID_VALUE";
-    case -31: return "CL_INVALID_DEVICE_TYPE";
-    case -32: return "CL_INVALID_PLATFORM";
-    case -33: return "CL_INVALID_DEVICE";
-    case -34: return "CL_INVALID_CONTEXT";
-    case -35: return "CL_INVALID_QUEUE_PROPERTIES";
-    case -36: return "CL_INVALID_COMMAND_QUEUE";
-    case -37: return "CL_INVALID_HOST_PTR";
-    case -38: return "CL_INVALID_MEM_OBJECT";
-    case -39: return "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR";
-    case -40: return "CL_INVALID_IMAGE_SIZE";
-    case -41: return "CL_INVALID_SAMPLER";
-    case -42: return "CL_INVALID_BINARY";
-    case -43: return "CL_INVALID_BUILD_OPTIONS";
-    case -44: return "CL_INVALID_PROGRAM";
-    case -45: return "CL_INVALID_PROGRAM_EXECUTABLE";
-    case -46: return "CL_INVALID_KERNEL_NAME";
-    case -47: return "CL_INVALID_KERNEL_DEFINITION";
-    case -48: return "CL_INVALID_KERNEL";
-    case -49: return "CL_INVALID_ARG_INDEX";
-    case -50: return "CL_INVALID_ARG_VALUE";
-    case -51: return "CL_INVALID_ARG_SIZE";
-    case -52: return "CL_INVALID_KERNEL_ARGS";
-    case -53: return "CL_INVALID_WORK_DIMENSION";
-    case -54: return "CL_INVALID_WORK_GROUP_SIZE";
-    case -55: return "CL_INVALID_WORK_ITEM_SIZE";
-    case -56: return "CL_INVALID_GLOBAL_OFFSET";
-    case -57: return "CL_INVALID_EVENT_WAIT_LIST";
-    case -58: return "CL_INVALID_EVENT";
-    case -59: return "CL_INVALID_OPERATION";
-    case -60: return "CL_INVALID_GL_OBJECT";
-    case -61: return "CL_INVALID_BUFFER_SIZE";
-    case -62: return "CL_INVALID_MIP_LEVEL";
-    case -63: return "CL_INVALID_GLOBAL_WORK_SIZE";
-    case -64: return "CL_INVALID_PROPERTY";
-    case -65: return "CL_INVALID_IMAGE_DESCRIPTOR";
-    case -66: return "CL_INVALID_COMPILER_OPTIONS";
-    case -67: return "CL_INVALID_LINKER_OPTIONS";
-    case -68: return "CL_INVALID_DEVICE_PARTITION_COUNT";
-
-    // extension errors
-    case -1000: return "CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR";
-    case -1001: return "CL_PLATFORM_NOT_FOUND_KHR";
-    case -1002: return "CL_INVALID_D3D10_DEVICE_KHR";
-    case -1003: return "CL_INVALID_D3D10_RESOURCE_KHR";
-    case -1004: return "CL_D3D10_RESOURCE_ALREADY_ACQUIRED_KHR";
-    case -1005: return "CL_D3D10_RESOURCE_NOT_ACQUIRED_KHR";
-    default: return "Unknown OpenCL error";
-    }
-}
-
-
 int main(int argc, char* argv[]) 
 {   
     FILE *f;
-    f = fopen("input.txt","r");
+    f = fopen("init_100_100","r");
 
     setup = parsingArguments(argv);
 
@@ -157,24 +79,8 @@ int main(int argc, char* argv[])
             break;
         }
     }
-    /*
-    double *blockEntries = (double*)malloc(sizeof(double) * sizes[0] * sizes[1]);
-    double **block = (double**)malloc(sizeof(double*) * sizes[0]);
-    for (size_t j = 0; j < sizes[0]; j++) 
-    {
-        block[j] = blockEntries + j * sizes[1];
-    }
-    for (size_t i = 0; i < sizes[0]; ++i)
-    {
-      for (size_t j = 0; j < sizes[1]; ++j)
-      {
-        block[i][j] = 0;
-      }
-    }
-    */
-    //double *block2 = (double*)calloc(sizes[0] * sizes[1], sizeof(double));
+
     double *block = (double*)calloc(sizes[0]*sizes[1], sizeof(double));
-    //for (size_t i = 0; i < sizes[0]; i++ ) block[i] = calloc( sizes[1], sizeof(double));
 
     int currentCoordinates[2];
     int miniCounter=0;
@@ -261,6 +167,8 @@ int main(int argc, char* argv[])
       return 1;
     }
 
+    free(opencl_program_src);
+
     //Build the program by compiling and linking
     error = clBuildProgram(program, 1, (const cl_device_id*)&device_id, NULL, NULL, NULL);
 
@@ -297,10 +205,16 @@ int main(int argc, char* argv[])
       return 1;
     }
 
+    cl_kernel kernel_difference = clCreateKernel(program, (const char*)"difference", &error);
+    if ( error != CL_SUCCESS ) {
+      fprintf(stderr, "cannot create kernel difference\n");
+      return 1;
+    }
+
     //Create variables within a context
     const int sz = sizes[0] * sizes[1];
     
-    cl_mem input_buffer_a, input_buffer_b;
+    cl_mem input_buffer_a, input_buffer_b, output_buffer_c;
 
     input_buffer_a = clCreateBuffer(context, CL_MEM_READ_WRITE, sz*sizeof(cl_double), NULL, &error);
     if ( error != CL_SUCCESS ) 
@@ -420,13 +334,175 @@ int main(int argc, char* argv[])
       prevTempArg = tempArg;
     }
 
+                           //Reduction part for average temperature
+    const size_t global_redsz = 1024;
+    const size_t local_redsz = 32;
+    const size_t nmb_redgps = global_redsz/local_redsz;
+
+    output_buffer_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY, nmb_redgps*sizeof(cl_double), NULL, &error);
+
+    //Set arguments for kernel reduction
+    const cl_int sz_clint = (cl_int)sz;
+    if(prevTempArg)
+    {
+      error = clSetKernelArg(kernel_reduction, 0, sizeof(cl_mem), &input_buffer_b);
+      if ( error != CL_SUCCESS) 
+      {
+        fprintf(stderr, "cannot set kernel_reduction argument for temperature (inside if statement) \n");
+        return 1;
+      }
+    }
+    else
+    {
+      error = clSetKernelArg(kernel_reduction, 0, sizeof(cl_mem), &input_buffer_a);
+      if ( error != CL_SUCCESS) 
+      {
+        fprintf(stderr, "cannot set kernel_reduction argument for temperature (inside else statement) \n");
+        return 1;
+      }
+    }
+
+    error = clSetKernelArg(kernel_reduction, 1, local_redsz*sizeof(cl_double), NULL);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot set kernel_reduction argument for scratch \n");
+      return 1;
+    }
+
+    error = clSetKernelArg(kernel_reduction, 2, sizeof(cl_int), &sz_clint);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot set kernel_reduction argument for global size \n");
+      return 1;
+    }
+
+    error = clSetKernelArg(kernel_reduction, 3, sizeof(cl_mem), &output_buffer_c);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot set kernel_reduction argument for output_buffer_c \n");
+      return 1;
+    }
+    //Enqueue the reduction kernel
+    error = clEnqueueNDRangeKernel(command_queue, kernel_reduction, 1, NULL, (const size_t*)&global_redsz, (const size_t*)&local_redsz, 0, NULL, NULL);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot enqueue kernel reduction \n");
+      return 1;
+    }
+
+    double *c_sum = malloc(nmb_redgps*sizeof(double));
+    error = clEnqueueReadBuffer(command_queue, output_buffer_c, CL_TRUE, 0, nmb_redgps*sizeof(cl_double), c_sum, 0, NULL, NULL);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot enqueue read of buffer for kernel reduction \n");
+      return 1;
+    }
+    //Synchronize
+    error = clFinish(command_queue);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot finish queue for kernel reduction \n");
+      return 1;
+    }
+
+    double c_sum_total = 0;
+    for (size_t ix = 0; ix < nmb_redgps; ++ix)
+    {
+      c_sum_total += c_sum[ix];
+    }
+
+    double averageTemp = c_sum_total/sz;
+
+                  //Average absolute difference of each temperature to the average of all temperatures
+
+    cl_double averageTemp_clint = (cl_double)averageTemp;
+    //Set arguments for kernel difference
+    int a_Or_b;
+    if(prevTempArg)
+    {
+      error = clSetKernelArg(kernel_difference, 0, sizeof(cl_mem), &input_buffer_b);
+      a_Or_b = 0;
+      if ( error != CL_SUCCESS) 
+      {
+        fprintf(stderr, "cannot set kernel_difference argument for temperature (inside if statement) \n");
+        return 1;
+      }
+    }
+    else
+    {
+      error = clSetKernelArg(kernel_difference, 0, sizeof(cl_mem), &input_buffer_a);
+      a_Or_b = 1;
+      if ( error != CL_SUCCESS) 
+      {
+        fprintf(stderr, "cannot set kernel_difference argument for temperature (inside else statement) \n");
+        return 1;
+      }
+    }
+
+    error = clSetKernelArg(kernel_difference, 1, sizeof(cl_double), &averageTemp_clint);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot set kernel_difference argument for average temperature\n");
+      return 1;
+    }
+    
+    error = clSetKernelArg(kernel_difference, 2, sizeof(cl_int), &width);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot set kernel_difference argument for width\n");
+      return 1;
+    }
+
+    //Execute the given arguments in the kernel
+    error = clEnqueueNDRangeKernel(command_queue, kernel_difference , 2, NULL, (const size_t*) &global_sz_szt, NULL, 0, NULL, NULL);
+    if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot queue kernel_difference arguments\n");
+      return 1;
+    }
+
+    //Copy variables from buffer to host
+    if(a_Or_b == 0)
+    {
+      error = clEnqueueReadBuffer(command_queue, input_buffer_b, CL_TRUE, 0, sz*sizeof(cl_double), block, 0, NULL, NULL);
+      if ( error != CL_SUCCESS) 
+    {
+      fprintf(stderr, "cannot copy variables from buffer to host in kernel difference\n");
+      return 1;
+    }
+    }
+    else
+    {
+      error = clEnqueueReadBuffer(command_queue, input_buffer_a, CL_TRUE, 0, sz*sizeof(cl_double), block, 0, NULL, NULL);
+      if ( error != CL_SUCCESS) 
+      {
+        fprintf(stderr, "cannot copy variables from buffer to host in kernel difference\n");
+        return 1;
+      }
+    }
+
+    printf("%.2f\n", averageTemp);
+    for (size_t i = 0; i < sizes[0]; ++i)
+    {
+      for(size_t j = 0; j < sizes[1]; ++j)
+      {
+        printf("%g ", block[i*sizes[0] + j]);
+      }
+      printf("\n");
+    }
+    
     //Free and release cl building parts
     free(block);
+    free(c_sum);
 
     clReleaseContext(context);
     clReleaseProgram(program);
     clReleaseCommandQueue(command_queue);
     clReleaseMemObject(input_buffer_a);
     clReleaseMemObject(input_buffer_b);
+    clReleaseMemObject(output_buffer_c);
+    clReleaseKernel(kernel);
+    clReleaseKernel(kernel_reduction);
+    clReleaseKernel(kernel_difference);
 
 }

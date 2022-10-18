@@ -1,5 +1,5 @@
 BINS = diffusion
-CFLAGS = -O0 -lOpenCL -g
+CFLAGS = -O2 -lOpenCL
 
 .PHONY : all
 all : $(BINS)
