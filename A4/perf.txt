@@ -1,0 +1,3 @@
+perf record -e cpu-cycles ./diffusion -n100000 -d0.01
+
+perf report

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #define CL_TARGET_OPENCL_VERSION 300
 #include <CL/cl.h>
 
@@ -239,10 +238,11 @@ int main(int argc, char* argv[])
 
     //Initiate global and local variables to compute the temperature
     const size_t global_sz_szt[] = {sizes[0], sizes[1]};
+    
     size_t local_size_i, local_size_j;
-    if (sizes[0] >= 102)
+    if (sizes[0] >= 100)
     {
-      local_size_i = 102;
+      local_size_i = 100;
       if (sizes[1] >= 10)
       {
         local_size_j = 10;
@@ -250,29 +250,29 @@ int main(int argc, char* argv[])
       else
       {
         local_size_j = sizes[1];
-        if (sizes[0] >= 1024/sizes[1])
-        {
-          local_size_i = 1024/sizes[1];
-        }
       }
     }
     else
     {
-      local_size_i = sizes[0];
-      if (sizes[1] >= 1024/sizes[0])
-      {
-        local_size_j = 1024/sizes[0];
+      if (sizes[0] < 10) {
+        local_size_i = sizes[0];
+      } else {
+        local_size_i = 10;
       }
-      else
-      {
+      if (sizes[1] > 100) {
+        local_size_j = 100;
+      } else if (sizes[1] < 10) {
         local_size_j = sizes[1];
+      } else {
+        local_size_j = 10;
       }
+
     }
 
+    const size_t local_work_sz[] = {local_size_i,local_size_j}; //Local work size
     cl_double diffusion_constant = (cl_double)setup.diffusion_constant;
     cl_int width = (cl_int)sizes[0], height = (cl_int)sizes[1];
     
-    const size_t local_work_sz[] = {local_size_i,local_size_j}; //Local work size
     cl_uint prevTempArg = (cl_uint)0, nextTempArg = (cl_uint)1, tempArg;
     for (int iter = 0; iter < setup.iterations; ++iter)
     {
@@ -313,7 +313,7 @@ int main(int argc, char* argv[])
       }
 
       //Queue to execute
-      error = clEnqueueNDRangeKernel(command_queue, kernel , (cl_uint)2, NULL, (const size_t*) &global_sz_szt, NULL, 0, NULL, NULL);
+      error = clEnqueueNDRangeKernel(command_queue, kernel , (cl_uint)2, NULL, (const size_t*) &global_sz_szt, (const size_t*)&local_work_sz, 0, NULL, NULL);
       if (error != CL_SUCCESS)
       {
         fprintf(stderr, "cannot enqueue kernel\n");
@@ -341,7 +341,7 @@ int main(int argc, char* argv[])
 
     output_buffer_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY, nmb_redgps*sizeof(cl_double), NULL, &error);
 
-    //Set arguments for kernel reduction
+    //Set arguments for kernel reduction  
     const cl_int sz_clint = (cl_int)sz;
     if(prevTempArg)
     {
@@ -386,7 +386,7 @@ int main(int argc, char* argv[])
     error = clEnqueueNDRangeKernel(command_queue, kernel_reduction, 1, NULL, (const size_t*)&global_redsz, (const size_t*)&local_redsz, 0, NULL, NULL);
     if ( error != CL_SUCCESS) 
     {
-      fprintf(stderr, "cannot enqueue kernel reduction \n");
+      fprintf(stderr, "cannot enqueue first kernel reduction \n");
       return 1;
     }
 
@@ -461,35 +461,39 @@ int main(int argc, char* argv[])
       return 1;
     }
 
-    //Copy variables from buffer to host
-    if(a_Or_b == 0)
+                    //Compute the average of the absolute difference between temperature and average
+    error = clEnqueueNDRangeKernel(command_queue, kernel_reduction, 1, NULL, (const size_t*)&global_redsz, (const size_t*)&local_redsz, 0, NULL, NULL);
+    if ( error != CL_SUCCESS) 
     {
-      error = clEnqueueReadBuffer(command_queue, input_buffer_b, CL_TRUE, 0, sz*sizeof(cl_double), block, 0, NULL, NULL);
-      if ( error != CL_SUCCESS) 
-    {
-      fprintf(stderr, "cannot copy variables from buffer to host in kernel difference\n");
+      fprintf(stderr, "cannot enqueue kernel reduction \n");
       return 1;
     }
-    }
-    else
+
+    error = clEnqueueReadBuffer(command_queue, output_buffer_c, CL_TRUE, 0, nmb_redgps*sizeof(cl_double), c_sum, 0, NULL, NULL);
+    if ( error != CL_SUCCESS) 
     {
-      error = clEnqueueReadBuffer(command_queue, input_buffer_a, CL_TRUE, 0, sz*sizeof(cl_double), block, 0, NULL, NULL);
-      if ( error != CL_SUCCESS) 
-      {
-        fprintf(stderr, "cannot copy variables from buffer to host in kernel difference\n");
-        return 1;
-      }
+      fprintf(stderr, "cannot enqueue read of buffer for kernel reduction \n");
+      return 1;
     }
 
-    printf("%.2f\n", averageTemp);
-    for (size_t i = 0; i < sizes[0]; ++i)
+    error = clFinish(command_queue);
+    if ( error != CL_SUCCESS) 
     {
-      for(size_t j = 0; j < sizes[1]; ++j)
-      {
-        printf("%g ", block[i*sizes[0] + j]);
-      }
-      printf("\n");
+      fprintf(stderr, "cannot finish queue\n");
+      return 1;
     }
+
+    c_sum_total = 0;
+    for (size_t ix = 0; ix < nmb_redgps; ++ix)
+    {
+      c_sum_total += c_sum[ix];
+    }
+
+    double absAverageTemp = c_sum_total/sz;
+
+    printf("%g\n", averageTemp);
+    printf("%g\n", absAverageTemp);
+    
     
     //Free and release cl building parts
     free(block);
